@@ -1,4 +1,4 @@
-# Heisen-Fork - Claude Skill Design
+# Shadow-Clone - Claude Skill Design
 
 **Date:** 2026-01-29
 **Status:** Draft - Pending Implementation
@@ -22,41 +22,41 @@ A Claude skill that generates sanitized, public-facing portfolio artifacts from 
 
 ## Skill Identity & Invocation
 
-**Skill name:** `/heisen-fork`
+**Skill name:** `/shadow-clone`
 
 ### Basic Patterns
 
 ```bash
 # Full pipeline (default)
-/heisen-fork /path/to/repo
+/shadow-clone /path/to/repo
 
 # With GitHub URL
-/heisen-fork https://github.com/user/private-repo
+/shadow-clone https://github.com/user/private-repo
 
 # Specific modes
-/heisen-fork /path/to/repo --readme-only
-/heisen-fork /path/to/repo --diagrams-only
-/heisen-fork /path/to/repo --safe-code-only
+/shadow-clone /path/to/repo --readme-only
+/shadow-clone /path/to/repo --diagrams-only
+/shadow-clone /path/to/repo --safe-code-only
 
 # Combined modes
-/heisen-fork /path/to/repo --readme --diagrams
+/shadow-clone /path/to/repo --readme --diagrams
 
 # With config file
-/heisen-fork /path/to/repo --config .heisen.yaml
+/shadow-clone /path/to/repo --config .shadow-clone.yaml
 
 # With natural language rules
-/heisen-fork /path/to/repo --rules "exclude billing logic, redact company names, keep infrastructure code"
+/shadow-clone /path/to/repo --rules "exclude billing logic, redact company names, keep infrastructure code"
 
 # Output location
-/heisen-fork /path/to/repo --output ./my-portfolio
+/shadow-clone /path/to/repo --output ./my-portfolio
 
 # Sensitivity override
-/heisen-fork /path/to/repo --mode moderate
+/shadow-clone /path/to/repo --mode moderate
 ```
 
 ### Default Behavior
 
-No flags = full pipeline with conservative mode, outputs to `./heisen-output/`, prompts for review before publish.
+No flags = full pipeline with conservative mode, outputs to `./shadow-clone-output/`, prompts for review before publish.
 
 ---
 
@@ -66,16 +66,16 @@ No flags = full pipeline with conservative mode, outputs to `./heisen-output/`, 
 
 ```bash
 # Single file analysis
-/heisen-fork /path/to/repo --file src/auth/oauth-handler.ts
+/shadow-clone /path/to/repo --file src/auth/oauth-handler.ts
 
 # Single folder analysis
-/heisen-fork /path/to/repo --folder src/infrastructure/
+/shadow-clone /path/to/repo --folder src/infrastructure/
 
 # Multiple targets
-/heisen-fork /path/to/repo --file src/api/router.ts --folder src/utils/
+/shadow-clone /path/to/repo --file src/api/router.ts --folder src/utils/
 
 # Glob patterns
-/heisen-fork /path/to/repo --include "src/**/*.controller.ts"
+/shadow-clone /path/to/repo --include "src/**/*.controller.ts"
 ```
 
 ### Output Per Target
@@ -96,10 +96,10 @@ No flags = full pipeline with conservative mode, outputs to `./heisen-output/`, 
 
 ## Configuration
 
-### Option A: Config File (`.heisen.yaml`)
+### Option A: Config File (`.shadow-clone.yaml`)
 
 ```yaml
-# .heisen.yaml
+# .shadow-clone.yaml
 project:
   name: "My Auth Service"
   role: "Lead Engineer"
@@ -146,7 +146,7 @@ outputs:
 ### Option B: Natural Language Rules
 
 ```bash
-/heisen-fork /path/to/repo --rules "
+/shadow-clone /path/to/repo --rules "
   keep all infrastructure and utility code,
   exclude anything in billing or partners folders,
   redact AcmeCorp and any internal domains,
@@ -158,7 +158,7 @@ outputs:
 
 - Config file = baseline rules (committed to repo, reusable)
 - Natural language = overrides or quick one-off runs
-- Can combine: `--config .heisen.yaml --rules "also exclude the analytics folder"`
+- Can combine: `--config .shadow-clone.yaml --rules "also exclude the analytics folder"`
 
 ---
 
@@ -209,10 +209,10 @@ outputs:
 ## Output Structure
 
 ```
-heisen-output/
+shadow-clone-output/
 ├── README.md                    # Main project narrative
 ├── REVIEW.md                    # What's included/excluded, flags for human review
-├── .heisen-meta.json         # Provenance: source commit, config used, timestamp
+├── .shadow-clone-meta.json         # Provenance: source commit, config used, timestamp
 │
 ├── docs/
 │   ├── architecture.md          # C4 diagrams with explanations
@@ -252,7 +252,7 @@ heisen-output/
 └── index.md                     # Table of contents linking everything
 ```
 
-### Provenance File (`.heisen-meta.json`)
+### Provenance File (`.shadow-clone-meta.json`)
 
 ```json
 {
@@ -300,7 +300,7 @@ After generation completes, the skill presents:
 PORTFOLIO GENERATION COMPLETE
 ═══════════════════════════════════════════════════════════
 
-Output location: ./heisen-output/
+Output location: ./shadow-clone-output/
 
 INCLUDED:
   ✓ 12 files in code/infrastructure/
@@ -324,9 +324,9 @@ REDACTED:
 ═══════════════════════════════════════════════════════════
 
 Next steps:
-  1. Review output at ./heisen-output/
+  1. Review output at ./shadow-clone-output/
   2. Check flagged items above
-  3. Run: /heisen-fork --publish (when ready)
+  3. Run: /shadow-clone --publish (when ready)
 ```
 
 ### Publish Destinations
@@ -335,42 +335,42 @@ Next steps:
 # ═══════════════════════════════════════════════════════════
 # OPTION 1: New GitHub Repository
 # ═══════════════════════════════════════════════════════════
-/heisen-fork --publish --new-repo my-portfolio
-/heisen-fork --publish --new-repo my-portfolio --visibility public
-/heisen-fork --publish --new-repo my-portfolio --visibility private
-/heisen-fork --publish --new-repo my-portfolio --org my-company
+/shadow-clone --publish --new-repo my-portfolio
+/shadow-clone --publish --new-repo my-portfolio --visibility public
+/shadow-clone --publish --new-repo my-portfolio --visibility private
+/shadow-clone --publish --new-repo my-portfolio --org my-company
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 2: Fork from Original (creates sanitized fork)
 # ═══════════════════════════════════════════════════════════
-/heisen-fork --publish --fork my-project-public
+/shadow-clone --publish --fork my-project-public
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 3: Branch in Same Repo
 # ═══════════════════════════════════════════════════════════
-/heisen-fork --publish --branch portfolio-public
+/shadow-clone --publish --branch portfolio-public
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 4: Subdirectory in Same Repo
 # ═══════════════════════════════════════════════════════════
-/heisen-fork --publish --subdir ./public-portfolio/
+/shadow-clone --publish --subdir ./public-portfolio/
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 5: Push to Existing Repo
 # ═══════════════════════════════════════════════════════════
-/heisen-fork --publish --existing user/my-existing-portfolio
-/heisen-fork --publish --existing user/my-existing-portfolio --branch main
+/shadow-clone --publish --existing user/my-existing-portfolio
+/shadow-clone --publish --existing user/my-existing-portfolio --branch main
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 6: Local Only (no GitHub)
 # ═══════════════════════════════════════════════════════════
-/heisen-fork --output ./heisen-output --no-publish
+/shadow-clone --output ./shadow-clone-output --no-publish
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 7: Export Package (zip/tarball)
 # ═══════════════════════════════════════════════════════════
-/heisen-fork --export ./my-portfolio.zip
-/heisen-fork --export ./my-portfolio.tar.gz
+/shadow-clone --export ./my-portfolio.zip
+/shadow-clone --export ./my-portfolio.tar.gz
 ```
 
 ### Destination Summary
@@ -441,7 +441,7 @@ See [/code](/code) for sanitized examples of:
 
 ---
 
-*Generated with heisen-fork from commit `a1b2c3d` on 2026-01-29*
+*Generated with shadow-clone from commit `a1b2c3d` on 2026-01-29*
 ```
 
 **Options:**
@@ -513,7 +513,7 @@ Claude generates clean SVG markup with embedded draw.io metadata:
 <svg xmlns="http://www.w3.org/2000/svg" ...>
   <defs>
     <!-- draw.io metadata embedded here -->
-    <mxfile host="heisen-fork">
+    <mxfile host="shadow-clone">
       <diagram id="..." name="Context">
         <mxGraphModel>
           <!-- draw.io native format -->
@@ -550,7 +550,7 @@ The skill supports incremental updates to avoid regenerating unchanged diagrams 
 
 **Source Change Detection:**
 
-- Compares source file hashes against stored values in `.heisen-meta.json`
+- Compares source file hashes against stored values in `.shadow-clone-meta.json`
 - Only re-analyzes files that have changed since last generation
 - Tracks which source files contribute to each diagram
 
@@ -576,7 +576,7 @@ By default, the skill preserves diagrams that have been manually edited:
 First run:
   → Analyzes all files
   → Generates all diagrams
-  → Stores hashes in .heisen-meta.json
+  → Stores hashes in .shadow-clone-meta.json
 
 Subsequent runs:
   → Compares file hashes
@@ -657,7 +657,7 @@ export interface IRankingService {
 ## Complete Command Reference
 
 ```bash
-/heisen-fork <source> [options]
+/shadow-clone <source> [options]
 
 SOURCE:
   /path/to/repo                    Local repository path
@@ -676,12 +676,12 @@ TARGETING (granular):
   --include "<glob>"               Pattern matching
 
 CONFIGURATION:
-  --config <file>                  Use config file (.heisen.yaml)
+  --config <file>                  Use config file (.shadow-clone.yaml)
   --rules "<natural language>"     Natural language rules
   --mode conservative|moderate     Safety posture (default: conservative)
 
 OUTPUT:
-  --output <path>                  Output directory (default: ./heisen-output)
+  --output <path>                  Output directory (default: ./shadow-clone-output)
   --export <file.zip>              Export as archive
 
 PUBLISH:
@@ -712,18 +712,18 @@ INCREMENTAL/DELTA:
 
 ```bash
 # Job hunting: full portfolio from private work repo
-/heisen-fork ~/code/work-project --new-repo my-portfolio --visibility public
+/shadow-clone ~/code/work-project --new-repo my-portfolio --visibility public
 
 # Quick showcase: just one impressive module
-/heisen-fork ~/code/project --folder src/auth/ --readme --diagrams
+/shadow-clone ~/code/project --folder src/auth/ --readme --diagrams
 
 # Iterate locally before publishing
-/heisen-fork ~/code/project --output ./draft --no-publish
+/shadow-clone ~/code/project --output ./draft --no-publish
 # ... review and tweak ...
-/heisen-fork --publish --existing user/my-portfolio
+/shadow-clone --publish --existing user/my-portfolio
 
 # Business idea protection: docs only, no code
-/heisen-fork ~/code/startup-idea --readme-only --diagrams-only --new-repo startup-public
+/shadow-clone ~/code/startup-idea --readme-only --diagrams-only --new-repo startup-public
 ```
 
 ---
