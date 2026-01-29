@@ -1,4 +1,4 @@
-# Portfolio Sanitizer - Claude Skill Design
+# Heisen-Fork - Claude Skill Design
 
 **Date:** 2026-01-29
 **Status:** Draft - Pending Implementation
@@ -22,41 +22,41 @@ A Claude skill that generates sanitized, public-facing portfolio artifacts from 
 
 ## Skill Identity & Invocation
 
-**Skill name:** `/portfolio-sanitizer`
+**Skill name:** `/heisen-fork`
 
 ### Basic Patterns
 
 ```bash
 # Full pipeline (default)
-/portfolio-sanitizer /path/to/repo
+/heisen-fork /path/to/repo
 
 # With GitHub URL
-/portfolio-sanitizer https://github.com/user/private-repo
+/heisen-fork https://github.com/user/private-repo
 
 # Specific modes
-/portfolio-sanitizer /path/to/repo --readme-only
-/portfolio-sanitizer /path/to/repo --diagrams-only
-/portfolio-sanitizer /path/to/repo --safe-code-only
+/heisen-fork /path/to/repo --readme-only
+/heisen-fork /path/to/repo --diagrams-only
+/heisen-fork /path/to/repo --safe-code-only
 
 # Combined modes
-/portfolio-sanitizer /path/to/repo --readme --diagrams
+/heisen-fork /path/to/repo --readme --diagrams
 
 # With config file
-/portfolio-sanitizer /path/to/repo --config .portfolio.yaml
+/heisen-fork /path/to/repo --config .heisen.yaml
 
 # With natural language rules
-/portfolio-sanitizer /path/to/repo --rules "exclude billing logic, redact company names, keep infrastructure code"
+/heisen-fork /path/to/repo --rules "exclude billing logic, redact company names, keep infrastructure code"
 
 # Output location
-/portfolio-sanitizer /path/to/repo --output ./my-portfolio
+/heisen-fork /path/to/repo --output ./my-portfolio
 
 # Sensitivity override
-/portfolio-sanitizer /path/to/repo --mode moderate
+/heisen-fork /path/to/repo --mode moderate
 ```
 
 ### Default Behavior
 
-No flags = full pipeline with conservative mode, outputs to `./portfolio-output/`, prompts for review before publish.
+No flags = full pipeline with conservative mode, outputs to `./heisen-output/`, prompts for review before publish.
 
 ---
 
@@ -66,16 +66,16 @@ No flags = full pipeline with conservative mode, outputs to `./portfolio-output/
 
 ```bash
 # Single file analysis
-/portfolio-sanitizer /path/to/repo --file src/auth/oauth-handler.ts
+/heisen-fork /path/to/repo --file src/auth/oauth-handler.ts
 
 # Single folder analysis
-/portfolio-sanitizer /path/to/repo --folder src/infrastructure/
+/heisen-fork /path/to/repo --folder src/infrastructure/
 
 # Multiple targets
-/portfolio-sanitizer /path/to/repo --file src/api/router.ts --folder src/utils/
+/heisen-fork /path/to/repo --file src/api/router.ts --folder src/utils/
 
 # Glob patterns
-/portfolio-sanitizer /path/to/repo --include "src/**/*.controller.ts"
+/heisen-fork /path/to/repo --include "src/**/*.controller.ts"
 ```
 
 ### Output Per Target
@@ -96,10 +96,10 @@ No flags = full pipeline with conservative mode, outputs to `./portfolio-output/
 
 ## Configuration
 
-### Option A: Config File (`.portfolio.yaml`)
+### Option A: Config File (`.heisen.yaml`)
 
 ```yaml
-# .portfolio.yaml
+# .heisen.yaml
 project:
   name: "My Auth Service"
   role: "Lead Engineer"
@@ -146,7 +146,7 @@ outputs:
 ### Option B: Natural Language Rules
 
 ```bash
-/portfolio-sanitizer /path/to/repo --rules "
+/heisen-fork /path/to/repo --rules "
   keep all infrastructure and utility code,
   exclude anything in billing or partners folders,
   redact AcmeCorp and any internal domains,
@@ -158,7 +158,7 @@ outputs:
 
 - Config file = baseline rules (committed to repo, reusable)
 - Natural language = overrides or quick one-off runs
-- Can combine: `--config .portfolio.yaml --rules "also exclude the analytics folder"`
+- Can combine: `--config .heisen.yaml --rules "also exclude the analytics folder"`
 
 ---
 
@@ -209,10 +209,10 @@ outputs:
 ## Output Structure
 
 ```
-portfolio-output/
+heisen-output/
 ├── README.md                    # Main project narrative
 ├── REVIEW.md                    # What's included/excluded, flags for human review
-├── .portfolio-meta.json         # Provenance: source commit, config used, timestamp
+├── .heisen-meta.json         # Provenance: source commit, config used, timestamp
 │
 ├── docs/
 │   ├── architecture.md          # C4 diagrams with explanations
@@ -252,7 +252,7 @@ portfolio-output/
 └── index.md                     # Table of contents linking everything
 ```
 
-### Provenance File (`.portfolio-meta.json`)
+### Provenance File (`.heisen-meta.json`)
 
 ```json
 {
@@ -300,7 +300,7 @@ After generation completes, the skill presents:
 PORTFOLIO GENERATION COMPLETE
 ═══════════════════════════════════════════════════════════
 
-Output location: ./portfolio-output/
+Output location: ./heisen-output/
 
 INCLUDED:
   ✓ 12 files in code/infrastructure/
@@ -324,9 +324,9 @@ REDACTED:
 ═══════════════════════════════════════════════════════════
 
 Next steps:
-  1. Review output at ./portfolio-output/
+  1. Review output at ./heisen-output/
   2. Check flagged items above
-  3. Run: /portfolio-sanitizer --publish (when ready)
+  3. Run: /heisen-fork --publish (when ready)
 ```
 
 ### Publish Destinations
@@ -335,42 +335,42 @@ Next steps:
 # ═══════════════════════════════════════════════════════════
 # OPTION 1: New GitHub Repository
 # ═══════════════════════════════════════════════════════════
-/portfolio-sanitizer --publish --new-repo my-portfolio
-/portfolio-sanitizer --publish --new-repo my-portfolio --visibility public
-/portfolio-sanitizer --publish --new-repo my-portfolio --visibility private
-/portfolio-sanitizer --publish --new-repo my-portfolio --org my-company
+/heisen-fork --publish --new-repo my-portfolio
+/heisen-fork --publish --new-repo my-portfolio --visibility public
+/heisen-fork --publish --new-repo my-portfolio --visibility private
+/heisen-fork --publish --new-repo my-portfolio --org my-company
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 2: Fork from Original (creates sanitized fork)
 # ═══════════════════════════════════════════════════════════
-/portfolio-sanitizer --publish --fork my-project-public
+/heisen-fork --publish --fork my-project-public
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 3: Branch in Same Repo
 # ═══════════════════════════════════════════════════════════
-/portfolio-sanitizer --publish --branch portfolio-public
+/heisen-fork --publish --branch portfolio-public
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 4: Subdirectory in Same Repo
 # ═══════════════════════════════════════════════════════════
-/portfolio-sanitizer --publish --subdir ./public-portfolio/
+/heisen-fork --publish --subdir ./public-portfolio/
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 5: Push to Existing Repo
 # ═══════════════════════════════════════════════════════════
-/portfolio-sanitizer --publish --existing user/my-existing-portfolio
-/portfolio-sanitizer --publish --existing user/my-existing-portfolio --branch main
+/heisen-fork --publish --existing user/my-existing-portfolio
+/heisen-fork --publish --existing user/my-existing-portfolio --branch main
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 6: Local Only (no GitHub)
 # ═══════════════════════════════════════════════════════════
-/portfolio-sanitizer --output ./portfolio-output --no-publish
+/heisen-fork --output ./heisen-output --no-publish
 
 # ═══════════════════════════════════════════════════════════
 # OPTION 7: Export Package (zip/tarball)
 # ═══════════════════════════════════════════════════════════
-/portfolio-sanitizer --export ./my-portfolio.zip
-/portfolio-sanitizer --export ./my-portfolio.tar.gz
+/heisen-fork --export ./my-portfolio.zip
+/heisen-fork --export ./my-portfolio.tar.gz
 ```
 
 ### Destination Summary
@@ -441,7 +441,7 @@ See [/code](/code) for sanitized examples of:
 
 ---
 
-*Generated with portfolio-sanitizer from commit `a1b2c3d` on 2026-01-29*
+*Generated with heisen-fork from commit `a1b2c3d` on 2026-01-29*
 ```
 
 **Options:**
@@ -513,7 +513,7 @@ Claude generates clean SVG markup with embedded draw.io metadata:
 <svg xmlns="http://www.w3.org/2000/svg" ...>
   <defs>
     <!-- draw.io metadata embedded here -->
-    <mxfile host="portfolio-sanitizer">
+    <mxfile host="heisen-fork">
       <diagram id="..." name="Context">
         <mxGraphModel>
           <!-- draw.io native format -->
@@ -550,7 +550,7 @@ The skill supports incremental updates to avoid regenerating unchanged diagrams 
 
 **Source Change Detection:**
 
-- Compares source file hashes against stored values in `.portfolio-meta.json`
+- Compares source file hashes against stored values in `.heisen-meta.json`
 - Only re-analyzes files that have changed since last generation
 - Tracks which source files contribute to each diagram
 
@@ -576,7 +576,7 @@ By default, the skill preserves diagrams that have been manually edited:
 First run:
   → Analyzes all files
   → Generates all diagrams
-  → Stores hashes in .portfolio-meta.json
+  → Stores hashes in .heisen-meta.json
 
 Subsequent runs:
   → Compares file hashes
@@ -657,7 +657,7 @@ export interface IRankingService {
 ## Complete Command Reference
 
 ```bash
-/portfolio-sanitizer <source> [options]
+/heisen-fork <source> [options]
 
 SOURCE:
   /path/to/repo                    Local repository path
@@ -676,12 +676,12 @@ TARGETING (granular):
   --include "<glob>"               Pattern matching
 
 CONFIGURATION:
-  --config <file>                  Use config file (.portfolio.yaml)
+  --config <file>                  Use config file (.heisen.yaml)
   --rules "<natural language>"     Natural language rules
   --mode conservative|moderate     Safety posture (default: conservative)
 
 OUTPUT:
-  --output <path>                  Output directory (default: ./portfolio-output)
+  --output <path>                  Output directory (default: ./heisen-output)
   --export <file.zip>              Export as archive
 
 PUBLISH:
@@ -712,18 +712,18 @@ INCREMENTAL/DELTA:
 
 ```bash
 # Job hunting: full portfolio from private work repo
-/portfolio-sanitizer ~/code/work-project --new-repo my-portfolio --visibility public
+/heisen-fork ~/code/work-project --new-repo my-portfolio --visibility public
 
 # Quick showcase: just one impressive module
-/portfolio-sanitizer ~/code/project --folder src/auth/ --readme --diagrams
+/heisen-fork ~/code/project --folder src/auth/ --readme --diagrams
 
 # Iterate locally before publishing
-/portfolio-sanitizer ~/code/project --output ./draft --no-publish
+/heisen-fork ~/code/project --output ./draft --no-publish
 # ... review and tweak ...
-/portfolio-sanitizer --publish --existing user/my-portfolio
+/heisen-fork --publish --existing user/my-portfolio
 
 # Business idea protection: docs only, no code
-/portfolio-sanitizer ~/code/startup-idea --readme-only --diagrams-only --new-repo startup-public
+/heisen-fork ~/code/startup-idea --readme-only --diagrams-only --new-repo startup-public
 ```
 
 ---

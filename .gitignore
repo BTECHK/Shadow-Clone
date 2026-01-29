@@ -1,0 +1,10 @@
+# Research/PRD docs (internal only)
+heisinfork*.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
