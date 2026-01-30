@@ -741,9 +741,9 @@ INCREMENTAL/DELTA:
 ## Appendix: Research References
 
 This design is based on market research documented in:
-- `heisinfork claude.md` - Comprehensive market research, MVP prioritization
-- `heisinfork chatgpt.md` - Updated MVP scope, safe code pack approach
-- `heisinfork gemini.md` - Technical architecture, competitive analysis
+- `shadow-clone-research-claude.md` - Comprehensive market research, MVP prioritization
+- `shadow-clone-research-chatgpt.md` - Updated MVP scope, safe code pack approach
+- `shadow-clone-research-gemini.md` - Technical architecture, competitive analysis
 
 Key insights incorporated:
 - Recruiters spend 6-37 seconds on GitHub profiles
