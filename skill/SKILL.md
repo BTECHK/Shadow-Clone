@@ -1,11 +1,11 @@
 ---
 name: shadow-clone
-description: Use when creating public portfolios from private repos, sanitizing code for recruiters, removing secrets before publishing, or showcasing work without exposing IP
+description: Use when creating quick portfolios from codebases, summarizing projects for easier digest, or generating shareable project documentation
 ---
 
 # Shadow-Clone
 
-Transform private repositories into recruiter-ready portfolios while protecting IP.
+Create quick portfolios and code summaries for easier digest.
 
 ## Quick Reference
 
@@ -117,13 +117,112 @@ shadow-clone-output/
 3. **Provenance tracking** - Record what was sanitized and why
 4. **Conservative mode** - Default to maximum safety
 
+## README Generation (`--readme-only`)
+
+When invoked with `--readme-only`, follow this process:
+
+### Step 1: Scan Repository Structure
+
+Use Glob and Read to gather:
+```
+- package.json, requirements.txt, go.mod, Cargo.toml (dependencies)
+- README.md (existing, if any)
+- src/, lib/, app/ structure
+- Dockerfile, docker-compose.yml
+- .github/workflows/, Jenkinsfile, .gitlab-ci.yml (CI/CD)
+- terraform/, infrastructure/, deploy/ (IaC)
+```
+
+### Step 2: Detect Tech Stack
+
+Build a tech stack table from detected files:
+
+| Indicator File | Technology |
+|----------------|------------|
+| `package.json` | Node.js + listed dependencies |
+| `requirements.txt` / `pyproject.toml` | Python + listed packages |
+| `go.mod` | Go |
+| `Cargo.toml` | Rust |
+| `Dockerfile` | Docker |
+| `*.tf` files | Terraform |
+| `.github/workflows/` | GitHub Actions |
+
+### Step 3: Generate README Sections
+
+**Template:**
+
+```markdown
+# {Project Name}
+
+> {One-line description - infer from existing README or package.json description}
+
+## Overview
+
+{AI-generated narrative: 2-3 paragraphs covering:
+- What problem does this solve?
+- What approach was taken?
+- Key constraints or requirements}
+
+## Tech Stack
+
+| Layer | Technologies |
+|-------|--------------|
+| {layer} | {detected technologies} |
+
+## Architecture
+
+{If diagrams requested, embed mermaid. Otherwise:}
+See [docs/architecture.md](docs/architecture.md) for system diagrams.
+
+## Key Features
+
+{Extract from existing README or infer from code structure:}
+- Feature 1: Brief description
+- Feature 2: Brief description
+
+## My Contributions
+
+{Placeholder for user to fill:}
+- Designed and implemented [specific system/component]
+- Led [initiative] resulting in [outcome]
+
+## Code Highlights
+
+{If safe code pack exists:}
+See [/public](/public) for sanitized examples of:
+- Infrastructure patterns
+- API design
+- Testing strategies
+
+---
+
+*Generated with shadow-clone on {date}*
+```
+
+### Step 4: Review Gate
+
+Before writing output, display:
+1. Preview of generated README
+2. List of detected technologies
+3. Any warnings (e.g., "No existing README found")
+
+Ask user: **"Write this README to {output_path}? (yes/no)"**
+
+### Step 5: Write Output
+
+If approved, write to:
+- `{output_dir}/README.md`
+- Update `.shadow-clone-meta.json` with generation metadata
+
+---
+
 ## Implementation Status
 
 | Component | Status |
 |-----------|--------|
-| Argument parsing | Not started |
+| Argument parsing | Basic |
 | Secret scanning | Not started |
-| README generation | Not started |
+| README generation | **Implemented** |
 | Diagram generation | Not started |
 | Safe code pack | Not started |
-| Review gate | Not started |
+| Review gate | Basic |

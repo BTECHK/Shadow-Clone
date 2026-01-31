@@ -2,7 +2,7 @@
 
 **Date:** 2026-01-29
 **Status:** Draft - Pending Implementation
-**Purpose:** Transform private repositories into recruiter-ready portfolios while protecting IP
+**Purpose:** Create quick portfolios and code summaries for easier digest
 
 ---
 
