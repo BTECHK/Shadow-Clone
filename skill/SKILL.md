@@ -437,12 +437,146 @@ If approved, write to:
 
 ---
 
+## Secret Scanning
+
+Secret scanning detects API keys, credentials, tokens, and other sensitive patterns in code, producing a sensitivity map for Stage 3 sanitization.
+
+### Step 1: Define Detection Patterns
+
+Use regex-based pattern matching for common secret formats:
+
+| Type | Regex Pattern | Example Match |
+|------|---------------|---------------|
+| AWS Access Key | `AKIA[0-9A-Z]{16}` | `AKIAIOSFODNN7EXAMPLE` |
+| AWS Secret Key | `(?i)aws.{0,20}secret.{0,20}['\"][0-9a-zA-Z/+]{40}['\"]` | - |
+| GitHub PAT | `ghp_[a-zA-Z0-9]{36}` | `ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` |
+| GitHub OAuth | `gho_[a-zA-Z0-9]{36}` | - |
+| Stripe Live | `sk_live_[a-zA-Z0-9]{24}` | - |
+| Stripe Test | `sk_test_[a-zA-Z0-9]{24}` | - |
+| Generic API Key | `(?i)(api[_-]?key\|apikey)['\"]?\s*[:=]\s*['\"][a-zA-Z0-9]{16,}['\"]` | - |
+| Database URL | `(?i)(postgres\|mysql\|mongodb\|redis)://[^\s'"]+` | `postgres://user:pass@host/db` |
+| Private Key | `-----BEGIN [A-Z ]+ PRIVATE KEY-----` | - |
+| JWT Token | `eyJ[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.` | - |
+| Bearer Token | `(?i)bearer\s+[a-zA-Z0-9\-_.]+` | - |
+| Slack Token | `xox[baprs]-[a-zA-Z0-9-]+` | - |
+| Google API | `AIza[0-9A-Za-z\-_]{35}` | - |
+| Internal IP | `(192\.168\.\|10\.\|172\.(1[6-9]\|2[0-9]\|3[01])\.)[0-9.]+` | `192.168.1.100` |
+| Internal URL | `https?://[a-z0-9.-]+\.(internal\|corp\|local\|dev)[:/]` | - |
+
+### Step 2: Identify Files to Scan
+
+**Priority targets:**
+```
+- .env, .env.*, *.env (environment files)
+- config/, settings/ (configuration directories)
+- *.json, *.yml, *.yaml (config formats)
+- src/**/*.ts, src/**/*.js (source code)
+- docker-compose.yml, Dockerfile
+- *.pem, *.key, *.p12 (certificate files - flag entire file)
+```
+
+**Skip by default:**
+```
+- node_modules/, vendor/, .git/
+- *.lock files
+- Binary files
+- Files > 1MB
+```
+
+### Step 3: Scan and Classify
+
+For each file:
+1. Read content line-by-line
+2. Match against pattern library
+3. Classify severity:
+
+| Severity | Criteria |
+|----------|----------|
+| CRITICAL | Private keys, active database credentials, cloud provider secrets |
+| HIGH | API keys, OAuth tokens, JWT secrets |
+| MEDIUM | Internal URLs, hardcoded passwords in comments |
+| LOW | Email patterns, potential PII, placeholder-looking secrets |
+
+### Step 4: Build Sensitivity Map
+
+Generate JSON structure:
+
+```json
+{
+  "scan_timestamp": "ISO-8601",
+  "files_scanned": 245,
+  "secrets_found": 12,
+  "by_severity": { "critical": 2, "high": 5, "medium": 3, "low": 2 },
+  "by_type": { "api_keys": 4, "database_credentials": 3 },
+  "findings": [
+    {
+      "file": "src/config/db.ts",
+      "line": 15,
+      "type": "database_credentials",
+      "severity": "critical",
+      "match": "postgres://***:***@..."
+    }
+  ]
+}
+```
+
+### Step 5: Generate Review Report
+
+Display format:
+
+```
+SECRET SCAN RESULTS
+═══════════════════
+
+Summary: 12 secrets found in 8 files
+
+By Severity:
+  CRITICAL  2 files  ⛔ Must exclude or redact
+  HIGH      5 files  ⚠️  Review for redaction
+  MEDIUM    3 files
+  LOW       2 files
+
+Critical Findings:
+  src/config/db.ts:15 - database_credentials
+  .env:3 - aws_secret_key
+
+Recommendations:
+  1. EXCLUDE: src/config/db.ts (active credentials)
+  2. REDACT: .env (replace with placeholders)
+```
+
+### Step 6: Review Gate
+
+Before proceeding to sanitization:
+1. Display scan summary
+2. Show critical/high severity files
+3. List recommended actions
+4. Ask: **"Proceed with these findings to sanitization? (yes/no)"**
+
+### Step 7: Output
+
+Write sensitivity map to:
+- In-memory for Stage 3 consumption
+- Include in `.shadow-clone-meta.json` under `secret_scan` key
+
+### Edge Cases
+
+| Scenario | Handling |
+|----------|----------|
+| `.env.example` with placeholders | Flag as LOW, suggest keeping as documentation |
+| Test fixtures with fake secrets | Detect `test`, `example`, `sample` in path → reduce severity |
+| Large binary files | Skip scanning, log as skipped |
+| Minified JS | Scan but note reduced accuracy |
+| Base64-encoded secrets | Decode and scan common patterns |
+
+---
+
 ## Implementation Status
 
 | Component | Status |
 |-----------|--------|
 | Argument parsing | Basic |
-| Secret scanning | Not started |
+| Secret scanning | **Implemented** |
 | README generation | **Implemented** |
 | Diagram generation | **Implemented** |
 | Safe code pack | Not started |
