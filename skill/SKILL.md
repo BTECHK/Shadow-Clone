@@ -571,6 +571,199 @@ Write sensitivity map to:
 
 ---
 
+## Safe Code Pack (`--safe-code-only`)
+
+Extract safe, shareable code by filtering through allow/deny rules and sanitizing detected secrets.
+
+### Step 1: Define Default Allowlists
+
+Categories of typically-safe code:
+
+| Category | Patterns | Rationale |
+|----------|----------|-----------|
+| Infrastructure | `infrastructure/`, `deploy/`, `terraform/`, `k8s/` | Shows DevOps skills, rarely contains secrets |
+| Utilities | `utils/`, `helpers/`, `lib/`, `common/` | Generic, reusable code |
+| Types/Interfaces | `types/`, `interfaces/`, `*.d.ts` | Contract definitions, no logic |
+| Tests | `__tests__/`, `*.test.*`, `*.spec.*` | Demonstrates testing practices |
+| Config examples | `*.example`, `*.sample`, `*.template` | Documentation, placeholder values |
+
+Default denylists:
+
+| Category | Patterns | Rationale |
+|----------|----------|-----------|
+| Environment | `.env`, `.env.*` (not .example) | Contains real secrets |
+| Credentials | `credentials/`, `secrets/`, `*.pem`, `*.key` | Sensitive by nature |
+| Business logic | `billing/`, `pricing/`, `auth/` | Proprietary IP |
+| Database | `migrations/`, `seeds/` | May contain real data patterns |
+
+### Step 2: Apply User Rules
+
+Parse `--rules` flag or config file:
+
+```
+# Natural language examples:
+--rules "include infrastructure, exclude billing"
+--rules "only utils and types"
+--rules "everything except auth and payments"
+```
+
+Rule precedence:
+1. Explicit deny (highest priority)
+2. Explicit allow
+3. Default denylist
+4. Default allowlist
+5. Deny by default (lowest - everything else excluded)
+
+### Step 3: Filter Files
+
+For each file in repository:
+1. Check against denylists first (skip if matched)
+2. Check against allowlists (include if matched)
+3. Check against user rules
+4. Apply sensitivity map:
+   - CRITICAL severity → exclude entirely
+   - HIGH severity → exclude or redact (user choice)
+   - MEDIUM/LOW → redact inline
+
+Output: List of files to include with redaction requirements
+
+### Step 4: Sanitize Content
+
+For each included file with secrets:
+1. Read file content
+2. For each finding from sensitivity map:
+   - Replace secret value with placeholder
+   - Preserve surrounding code structure
+
+Placeholder format:
+```
+# Original:
+const API_KEY = "sk_live_abc123xyz789";
+const DB_URL = "postgres://user:pass@host/db";
+
+# Sanitized:
+const API_KEY = "REDACTED_STRIPE_KEY";
+const DB_URL = "postgres://REDACTED_USER:REDACTED_PASS@REDACTED_HOST/db";
+```
+
+Placeholder naming:
+
+| Secret Type | Placeholder |
+|-------------|-------------|
+| AWS Key | `REDACTED_AWS_KEY` |
+| Database URL | `postgres://REDACTED/...` |
+| API Key | `REDACTED_API_KEY` |
+| Private Key | `[PRIVATE KEY REDACTED]` |
+| JWT | `REDACTED_JWT_TOKEN` |
+| Generic | `REDACTED_SECRET` |
+
+### Step 5: Generate Output
+
+Write sanitized files to output:
+```
+shadow-clone-output/
+└── public/
+    ├── infrastructure/
+    │   └── docker-compose.yml
+    ├── utils/
+    │   ├── logger.ts
+    │   └── validation.ts
+    └── MANIFEST.md
+```
+
+Generate `MANIFEST.md`:
+```markdown
+# Safe Code Pack Manifest
+
+Generated: {timestamp}
+Source: {repo_path}
+
+## Included Files
+
+| File | Status | Redactions |
+|------|--------|------------|
+| infrastructure/docker-compose.yml | Sanitized | 2 secrets redacted |
+| utils/logger.ts | Clean | - |
+| utils/validation.ts | Clean | - |
+
+## Excluded Files
+
+| Category | Count | Reason |
+|----------|-------|--------|
+| Business logic | 12 | Default denylist |
+| Contains secrets | 3 | CRITICAL severity |
+| User rules | 5 | Excluded by --rules |
+
+## Redaction Summary
+
+| Type | Count |
+|------|-------|
+| Database URLs | 1 |
+| API Keys | 1 |
+| Total | 2 |
+```
+
+### Step 6: Review Gate
+
+Display before writing:
+
+```
+SAFE CODE PACK PREVIEW
+══════════════════════
+
+Files to include: 15 files (3 with redactions)
+
+By Category:
+  infrastructure/    4 files
+  utils/             6 files
+  types/             5 files
+
+Redactions:
+  infrastructure/docker-compose.yml
+    Line 12: DATABASE_URL → REDACTED
+    Line 15: REDIS_URL → REDACTED
+
+Excluded (45 files):
+  - src/billing/ (12 files) - business logic
+  - src/auth/ (8 files) - business logic
+  - .env (1 file) - CRITICAL secrets
+  - src/config/db.ts (1 file) - CRITICAL secrets
+```
+
+Ask: **"Generate safe code pack with these settings? (yes/no)"**
+
+### Step 7: Write Output
+
+If approved:
+- Copy sanitized files to `{output_dir}/public/`
+- Write `MANIFEST.md`
+- Update `.shadow-clone-meta.json`:
+
+```json
+{
+  "safe_code_pack": {
+    "generated_at": "ISO-8601",
+    "files_included": 15,
+    "files_excluded": 45,
+    "redactions_applied": 2,
+    "rules_applied": ["include infrastructure", "exclude billing"]
+  }
+}
+```
+
+### Edge Cases
+
+| Scenario | Handling |
+|----------|----------|
+| Zero files after filtering | Warn user, suggest relaxing rules |
+| File with only secrets | Exclude entirely, note in manifest |
+| Binary files | Skip, note as "binary excluded" |
+| Symlinks | Resolve and copy if target is allowed |
+| Empty directories | Don't create in output |
+| Very large files (>1MB) | Include but warn in review |
+
+---
+
 ## Implementation Status
 
 | Component | Status |
@@ -579,5 +772,5 @@ Write sensitivity map to:
 | Secret scanning | **Implemented** |
 | README generation | **Implemented** |
 | Diagram generation | **Implemented** |
-| Safe code pack | Not started |
+| Safe code pack | **Implemented** |
 | Review gate | Basic |
