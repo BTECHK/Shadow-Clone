@@ -40,6 +40,35 @@ Create quick portfolios and code summaries for easier digest.
 /shadow-clone /path/to/repo --folder src/infrastructure/
 ```
 
+## Execution Instructions
+
+When this skill is invoked, follow these steps in order.
+
+### Parse Arguments
+
+Extract from invocation:
+1. **Target path** - First positional argument (required)
+2. **Mode** - `--readme-only`, `--diagrams-only`, `--safe-code-only`, or full (default)
+3. **Rules** - `--rules "natural language rules"`
+4. **Output** - `--output DIR` (default: `./shadow-clone-output/`)
+5. **Safety** - `--mode conservative` (default) or `--mode moderate`
+
+**Validation:**
+1. Use `Bash: ls {target_path}` to verify path exists
+2. If path doesn't exist, stop and report error
+3. Create output directory: `Bash: mkdir -p {output_dir}`
+
+### Execute Pipeline
+
+Based on mode flag, execute stages:
+
+| Mode | Stages to Run |
+|------|---------------|
+| `--readme-only` | 1 → 2 → 4a → 5 |
+| `--diagrams-only` | 1 → 2 → 4b → 5 |
+| `--safe-code-only` | 1 → 2 → 3 → 4c → 5 |
+| Full (default) | 1 → 2 → 3 → 4 → 5 |
+
 ## Workflow
 
 ```dot
@@ -74,11 +103,80 @@ digraph shadow_clone_workflow {
 - Detect project type (language, framework)
 - Load config file if present
 
+**Execution:**
+
+**Step 1.1: Scan project structure**
+
+Use Glob to find key files:
+- `Glob: **/package.json` - Node.js projects
+- `Glob: **/requirements.txt` OR `**/pyproject.toml` - Python projects
+- `Glob: **/go.mod` - Go projects
+- `Glob: **/Cargo.toml` - Rust projects
+- `Glob: **/docker-compose.yml` - Container config
+- `Glob: **/.github/workflows/*.yml` - CI/CD
+
+**Step 1.2: Read project manifests**
+
+Read the first matching manifest to detect:
+- Project name and description
+- Dependencies (tech stack)
+- Scripts/commands available
+
+**Step 1.3: Build file inventory**
+
+Use Glob to count files by type:
+- `Glob: **/*.ts` OR `**/*.js` - TypeScript/JavaScript
+- `Glob: **/*.py` - Python
+- `Glob: **/*.go` - Go
+
+**Skip by default (never scan):**
+- `node_modules/`, `vendor/`, `.git/`, `__pycache__/`, `dist/`, `build/`
+- `*.lock` files
+- Binary files (`.png`, `.jpg`, `.exe`, `.dll`, etc.)
+
 ### Stage 2: Analyze
 - **Secret scanning** - API keys, credentials, tokens
 - **IP detection** - Proprietary algorithms, business logic
 - **PII scanning** - Names, emails, internal URLs
 - Build sensitivity map per file
+
+**Execution:**
+
+**Step 2.1: Scan for secrets**
+
+Run Grep for each pattern category. Use `output_mode: "content"` to see matches:
+
+| Pattern | Grep Command |
+|---------|--------------|
+| AWS Access Key | `Grep: pattern="AKIA[0-9A-Z]{16}"` |
+| AWS Secret | `Grep: pattern="(?i)aws.{0,20}secret.{0,20}['\"][0-9a-zA-Z/+]{40}"` |
+| GitHub PAT | `Grep: pattern="ghp_[a-zA-Z0-9]{36}"` |
+| Stripe Key | `Grep: pattern="sk_(live\|test)_[a-zA-Z0-9]{24}"` |
+| Database URL | `Grep: pattern="(?i)(postgres\|mysql\|mongodb\|redis)://[^\s'\"]+", -i=true` |
+| Private Key | `Grep: pattern="-----BEGIN .* PRIVATE KEY-----"` |
+| JWT Token | `Grep: pattern="eyJ[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\."` |
+| Generic API Key | `Grep: pattern="(?i)(api[_-]?key)['\"]?\s*[:=]\s*['\"][a-zA-Z0-9]{16,}"` |
+| Internal URL | `Grep: pattern="https?://[a-z0-9.-]+\.(internal\|corp\|local)[:/]"` |
+
+**Step 2.2: Classify findings**
+
+For each match, assign severity:
+- **CRITICAL**: Private keys, database credentials with passwords, cloud provider secrets
+- **HIGH**: API keys, OAuth tokens, JWT secrets
+- **MEDIUM**: Internal URLs, hardcoded passwords in comments
+- **LOW**: Placeholder-looking values, test fixtures
+
+**Reduce severity by one level if:**
+- Path contains `test/`, `spec/`, `example/`, `fixture/`
+- File is `.env.example` or `.env.sample`
+- Value contains `example`, `sample`, `test`, `xxx`, `placeholder`
+
+**Step 2.3: Build sensitivity map**
+
+Track findings mentally for Stage 3:
+- Files with CRITICAL findings → exclude entirely
+- Files with HIGH findings → exclude or redact (based on mode)
+- Files with MEDIUM/LOW → redact inline
 
 ### Stage 3: Sanitize
 - Apply allow/deny rules
@@ -90,24 +188,72 @@ Based on mode flags, generate:
 - **README** - Project overview, tech stack, architecture summary
 - **Diagrams** - Mermaid C4 diagrams (Context, Container, Component levels)
 - **Safe Code Pack** - Allowlisted files with sanitization applied
+- **Decision Logs** - Architecture Decision Records (ADRs) extracted from commits/code
 
 ### Stage 5: Review Gate
 - Display summary of what will be published
 - Show any warnings or flagged content
 - **Require explicit user approval before output**
 
+**Execution:**
+
+**CRITICAL: Never write output without explicit user approval.**
+
+Before writing any files, display this summary:
+
+```
+══════════════════════════════════════════════════════════
+SHADOW-CLONE REVIEW
+══════════════════════════════════════════════════════════
+
+Target: {target_path}
+Output: {output_dir}
+Mode: {mode}
+
+WILL GENERATE:
+  {list of files to be created}
+
+SECRETS FOUND:
+  CRITICAL: {n} (files will be EXCLUDED)
+  HIGH: {n} (will be {excluded|redacted} based on mode)
+  MEDIUM: {n} (will be redacted)
+  LOW: {n} (will be redacted)
+
+{If --safe-code-only or full mode:}
+SAFE CODE PACK:
+  Include: {n} files
+  Exclude: {n} files
+  Redact: {n} files
+
+══════════════════════════════════════════════════════════
+```
+
+**Ask user:** "Proceed with generation? (yes/no)"
+
+- If **yes**: Execute Stage 4 output writing
+- If **no**: Ask what to adjust and re-run relevant stages
+
 ## Output Structure
 
 ```
 shadow-clone-output/
-├── README.md
+├── README.md                    # Main project narrative
+├── REVIEW.md                    # What's included/excluded, flags for review
+├── .shadow-clone-meta.json      # Provenance: source, config, timestamp
 ├── docs/
-│   ├── architecture.md
+│   ├── architecture.md          # C4 diagrams with explanations
+│   ├── decisions/               # Architecture Decision Records (ADRs)
+│   │   ├── INDEX.md
+│   │   └── 001-*.md
 │   └── flows/
-├── public/           # Safe code pack
-│   ├── infrastructure/
-│   └── utils/
-└── .shadow-clone-meta.json  # Provenance
+├── diagrams/                    # Standalone diagram files
+│   ├── context.mermaid
+│   ├── containers.mermaid
+│   └── components.mermaid
+└── code/                        # Safe code pack
+    ├── infrastructure/
+    ├── utils/
+    └── stubs/                   # Stubbed excluded code (if enabled)
 ```
 
 ## Safety Principles
@@ -180,6 +326,19 @@ See [docs/architecture.md](docs/architecture.md) for system diagrams.
 - Feature 1: Brief description
 - Feature 2: Brief description
 
+## Technical Trade-offs
+
+{Auto-generate from detected decisions. Show what was optimized for AND what wasn't:}
+
+| Decision | Optimized For | Trade-off Accepted |
+|----------|---------------|-------------------|
+| {e.g., PostgreSQL} | {Data integrity, complex queries} | {Operational complexity vs SQLite} |
+| {e.g., Redis Queue} | {Reliability, burst handling} | {Eventual consistency vs sync} |
+| {e.g., Monolith} | {Simplicity, fast iteration} | {Scaling limits vs microservices} |
+
+{Link to detailed decisions:}
+See [docs/decisions/](docs/decisions/) for Architecture Decision Records.
+
 ## My Contributions
 
 {Placeholder for user to fill:}
@@ -189,7 +348,7 @@ See [docs/architecture.md](docs/architecture.md) for system diagrams.
 ## Code Highlights
 
 {If safe code pack exists:}
-See [/public](/public) for sanitized examples of:
+See [/code](/code) for sanitized examples of:
 - Infrastructure patterns
 - API design
 - Testing strategies
@@ -662,7 +821,7 @@ Placeholder naming:
 Write sanitized files to output:
 ```
 shadow-clone-output/
-└── public/
+└── code/
     ├── infrastructure/
     │   └── docker-compose.yml
     ├── utils/
@@ -735,7 +894,7 @@ Ask: **"Generate safe code pack with these settings? (yes/no)"**
 ### Step 7: Write Output
 
 If approved:
-- Copy sanitized files to `{output_dir}/public/`
+- Copy sanitized files to `{output_dir}/code/`
 - Write `MANIFEST.md`
 - Update `.shadow-clone-meta.json`:
 
@@ -764,13 +923,169 @@ If approved:
 
 ---
 
+## Decision Log / ADR Generation
+
+Generate Architecture Decision Records (ADRs) to document key technical decisions.
+
+### Step 1: Extract Decision Signals
+
+Scan for decision indicators in:
+
+**Commit messages:**
+- Keywords: `decided`, `chose`, `vs`, `instead of`, `switched to`, `migrated`
+- Pattern: `Grep: pattern="(decided|chose|vs\.|instead of|switched to|migrated)"` in `.git/logs`
+
+**Code comments:**
+- Keywords: `TODO: reconsider`, `DECISION:`, `NOTE: we chose`, `tradeoff`
+- Pattern: `Grep: pattern="(TODO.*reconsider|DECISION:|NOTE:.*chose|tradeoff|trade-off)"`
+
+**Configuration choices:**
+- Database selection (PostgreSQL vs MySQL vs MongoDB)
+- Framework selection (Express vs Fastify vs Nest)
+- State management (Redux vs Context vs Zustand)
+
+### Step 2: Identify Common Decision Categories
+
+| Category | Detection Pattern |
+|----------|-------------------|
+| Database | `postgres`, `mysql`, `mongodb`, `redis`, `prisma` in dependencies |
+| Queue/Messaging | `bull`, `rabbitmq`, `kafka`, `sqs` in dependencies |
+| Auth Strategy | `passport`, `jwt`, `oauth`, `auth0` in dependencies |
+| API Style | `graphql`, `rest`, `grpc`, `trpc` in code patterns |
+| Testing Strategy | `jest`, `mocha`, `pytest`, `vitest` in dependencies |
+| Deployment | `docker`, `kubernetes`, `serverless`, `vercel` in configs |
+
+### Step 3: Generate ADR Template
+
+For each detected decision, generate `docs/decisions/NNN-decision-name.md`:
+
+```markdown
+# Decision: {Title}
+
+**Status:** Accepted
+**Date:** {Inferred from commits or "Unknown"}
+**Context:** {Auto-generated from detected patterns}
+
+## Decision
+
+{What was chosen - detected from dependencies/config}
+
+## Rationale
+
+{Placeholder for user to fill}
+- Why this approach?
+- What alternatives were considered?
+
+## Consequences
+
+**Benefits:**
+- {Inferred benefit based on choice}
+
+**Trade-offs:**
+- {Inferred trade-off based on choice}
+
+## Alternatives Considered
+
+- {Alternative 1}: {Why not chosen}
+- {Alternative 2}: {Why not chosen}
+
+---
+*Generated by shadow-clone. Please customize with project-specific context.*
+```
+
+### Step 4: Common Decision Templates
+
+Pre-populate based on detected patterns:
+
+**Database Choice (PostgreSQL detected):**
+```markdown
+# Decision: Use PostgreSQL as Primary Database
+
+**Status:** Accepted
+
+## Decision
+PostgreSQL for relational data storage with Prisma ORM.
+
+## Rationale
+- ACID compliance for transactional integrity
+- Rich query capabilities (JSON, full-text search)
+- Strong ecosystem and tooling
+
+## Trade-offs
+- More operational complexity than SQLite
+- Requires connection pooling at scale
+- Schema migrations needed for changes
+```
+
+**Queue System (Bull/Redis detected):**
+```markdown
+# Decision: Use Queue for Async Processing
+
+**Status:** Accepted
+
+## Decision
+Redis-backed job queue (Bull) for background processing.
+
+## Rationale
+- Decouple long-running tasks from request/response
+- Burst handling and rate limiting
+- Retry logic with dead letter queue
+
+## Trade-offs
+- Eventual consistency (not immediate)
+- Additional infrastructure (Redis)
+- Complexity in job monitoring/debugging
+```
+
+### Step 5: Output Structure
+
+```
+shadow-clone-output/
+└── docs/
+    └── decisions/
+        ├── 001-database-choice.md
+        ├── 002-authentication-strategy.md
+        ├── 003-api-architecture.md
+        └── INDEX.md
+```
+
+Generate `docs/decisions/INDEX.md`:
+```markdown
+# Architecture Decisions
+
+| # | Decision | Status | Date |
+|---|----------|--------|------|
+| 001 | Database Choice | Accepted | Inferred |
+| 002 | Authentication Strategy | Accepted | Inferred |
+| 003 | API Architecture | Accepted | Inferred |
+
+---
+*Decisions extracted by shadow-clone. Customize with your rationale.*
+```
+
+### Step 6: Review Gate
+
+Display decision summary before generation:
+
+```
+DECISIONS DETECTED:
+  Database: PostgreSQL (via Prisma)
+  Auth: JWT-based (via jsonwebtoken)
+  Queue: Redis + Bull
+  API: REST (Express routes detected)
+
+ADRs to generate: 4 files in docs/decisions/
+```
+
+---
+
 ## Implementation Status
 
 | Component | Status |
 |-----------|--------|
-| Argument parsing | Basic |
-| Secret scanning | **Implemented** |
-| README generation | **Implemented** |
-| Diagram generation | **Implemented** |
-| Safe code pack | **Implemented** |
-| Review gate | Basic |
+| Argument parsing | **Implemented** |
+| Stage 1: Ingest | **Implemented** |
+| Stage 2: Analyze | **Implemented** |
+| Stage 3: Sanitize | **Implemented** |
+| Stage 4: Generate | **Implemented** |
+| Stage 5: Review gate | **Implemented** |
