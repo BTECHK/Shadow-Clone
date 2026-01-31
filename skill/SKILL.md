@@ -88,7 +88,7 @@ digraph shadow_clone_workflow {
 ### Stage 4: Generate
 Based on mode flags, generate:
 - **README** - Project overview, tech stack, architecture summary
-- **Diagrams** - Mermaid architecture diagrams
+- **Diagrams** - Mermaid C4 diagrams (Context, Container, Component levels)
 - **Safe Code Pack** - Allowlisted files with sanitization applied
 
 ### Stage 5: Review Gate
@@ -216,6 +216,227 @@ If approved, write to:
 
 ---
 
+## Diagram Generation (`--diagrams-only`)
+
+When invoked with `--diagrams-only`, generate C4 architecture diagrams in Mermaid format.
+
+### Step 1: Scan Project Structure
+
+Detect project characteristics:
+```
+- package.json, go.mod, requirements.txt, Cargo.toml (project type)
+- docker-compose.yml, Dockerfile (container boundaries)
+- .env, .env.example (external system hints)
+- src/, apps/, packages/ (folder structure)
+```
+
+### Step 2: Detect External Systems
+
+Scan for integrations with external services:
+
+| Source | What to Look For |
+|--------|------------------|
+| `.env`, `.env.example` | `*_URL`, `*_API_KEY`, `*_HOST` patterns |
+| Package dependencies | `pg`, `redis`, `stripe`, `aws-sdk`, `@prisma/client`, etc. |
+| Config files | Database connection strings, third-party endpoints |
+| HTTP clients | Base URLs in axios/fetch configurations |
+
+**Common external system mappings:**
+
+| Dependency | External System |
+|------------|-----------------|
+| `pg`, `mysql2`, `@prisma/client` | Database (PostgreSQL/MySQL) |
+| `redis`, `ioredis` | Redis Cache |
+| `stripe`, `@stripe/stripe-js` | Stripe Payment API |
+| `aws-sdk`, `@aws-sdk/*` | AWS Services |
+| `@sendgrid/mail`, `nodemailer` | Email Service |
+| `elasticsearch`, `@elastic/*` | Elasticsearch |
+
+### Step 3: Detect Containers
+
+Identify logical deployment units:
+
+| Source | Container Indicator |
+|--------|---------------------|
+| `docker-compose.yml` | Each `service:` = container |
+| Folder structure | `src/api/`, `src/worker/`, `src/web/` |
+| Monorepo config | `workspaces` in package.json, `apps/*` |
+| Separate entry points | Multiple `main.ts`, `index.js` files |
+
+**Fallback for monoliths:** If no container boundaries detected, treat as single container with rich component diagram.
+
+### Step 4: Detect Components
+
+Identify internal components within containers:
+
+| Folder Pattern | Component Type |
+|----------------|----------------|
+| `controllers/`, `routes/`, `handlers/` | HTTP Handlers |
+| `services/`, `domain/`, `core/` | Business Logic |
+| `repositories/`, `data/`, `db/` | Data Access |
+| `middleware/`, `interceptors/` | Middleware |
+| `utils/`, `helpers/`, `lib/` | Utilities |
+| `models/`, `entities/`, `schemas/` | Data Models |
+| `events/`, `queues/`, `jobs/` | Async Processing |
+
+### Step 5: Generate C4 Context Diagram
+
+Create system context showing users and external systems:
+
+```mermaid
+C4Context
+    title System Context diagram for {Project Name}
+
+    Person(user, "User", "Primary system user")
+
+    System(system, "{Project Name}", "{Description from package.json or inferred}")
+
+    System_Ext(ext_db, "Database", "{Detected DB type}")
+    System_Ext(ext_cache, "Cache", "Redis") %% if detected
+    System_Ext(ext_payment, "Payment Provider", "Stripe") %% if detected
+
+    Rel(user, system, "Uses")
+    Rel(system, ext_db, "Reads/Writes data")
+    Rel(system, ext_cache, "Caches data") %% if detected
+```
+
+### Step 6: Generate C4 Container Diagram
+
+Show internal containers and their interactions:
+
+```mermaid
+C4Container
+    title Container diagram for {Project Name}
+
+    Person(user, "User", "Primary user")
+
+    System_Boundary(boundary, "{Project Name}") {
+        Container(api, "API Server", "{Tech stack}", "Handles HTTP requests")
+        Container(worker, "Background Worker", "{Tech}", "Processes async jobs") %% if detected
+        Container(web, "Web App", "{Framework}", "User interface") %% if detected
+        ContainerDb(db, "Database", "{DB Type}", "Stores application data")
+    }
+
+    Rel(user, web, "Uses", "HTTPS")
+    Rel(web, api, "Calls", "REST/GraphQL")
+    Rel(api, db, "Reads/Writes")
+    Rel(api, worker, "Enqueues jobs") %% if detected
+```
+
+### Step 7: Generate C4 Component Diagram
+
+Detail components within the main container:
+
+```mermaid
+C4Component
+    title Component diagram for {Container Name}
+
+    Container_Boundary(api, "API Application") {
+        Component(controllers, "Controllers", "{Framework}", "Handle HTTP requests, validate input")
+        Component(services, "Services", "{Language}", "Business logic, orchestration")
+        Component(repos, "Repositories", "{ORM/Driver}", "Data access, queries")
+        Component(middleware, "Middleware", "{Framework}", "Auth, logging, error handling") %% if detected
+    }
+
+    Rel(controllers, services, "Uses")
+    Rel(services, repos, "Uses")
+    Rel(middleware, controllers, "Wraps")
+```
+
+### Step 8: Generate `docs/architecture.md`
+
+Create prose documentation with embedded diagrams:
+
+```markdown
+# Architecture Overview
+
+## System Description
+
+{AI-generated narrative: 2-3 paragraphs describing:
+- System purpose and scope
+- Key architectural decisions inferred from stack
+- Primary data flows}
+
+## Tech Stack Summary
+
+| Layer | Technology |
+|-------|------------|
+| Runtime | {Node.js/Python/Go/etc.} |
+| Framework | {Express/FastAPI/Gin/etc.} |
+| Database | {PostgreSQL/MongoDB/etc.} |
+| Cache | {Redis/etc. if detected} |
+
+## C4 Diagrams
+
+### Level 1: System Context
+
+{Embed context.mermaid}
+
+### Level 2: Container
+
+{Embed containers.mermaid}
+
+### Level 3: Component
+
+{Embed components.mermaid}
+
+## Key Design Decisions
+
+{Inferred from stack, e.g.:
+- "Layered architecture with clear separation of concerns"
+- "Event-driven processing for background jobs"
+- "Repository pattern for data access abstraction"}
+```
+
+### Step 9: Review Gate
+
+Before writing output, display:
+
+1. **Detected Tech Stack:**
+   ```
+   Language: TypeScript
+   Framework: Express.js
+   Database: PostgreSQL (via Prisma)
+   Cache: Redis (via ioredis)
+   ```
+
+2. **External Systems Found:**
+   - Database: PostgreSQL
+   - Cache: Redis
+   - Payment: Stripe
+
+3. **Containers Identified:**
+   - API Server (src/api/)
+   - Background Worker (src/worker/)
+
+4. **Components Detected:**
+   - Controllers (src/api/controllers/)
+   - Services (src/api/services/)
+   - Repositories (src/api/repositories/)
+
+Ask user: **"Generate diagrams with this detected structure? (yes/no)"**
+
+### Step 10: Write Output
+
+If approved, write to:
+- `{output_dir}/diagrams/context.mermaid`
+- `{output_dir}/diagrams/containers.mermaid`
+- `{output_dir}/diagrams/components.mermaid`
+- `{output_dir}/docs/architecture.md`
+- Update `.shadow-clone-meta.json` with generation metadata
+
+### Edge Cases
+
+| Scenario | Handling |
+|----------|----------|
+| No docker-compose | Use folder structure for container detection |
+| Monolith (no boundaries) | Single container, rich component diagram |
+| Unknown technology | Use generic labels, note uncertainty in review |
+| No components detected | Generate context + container only, skip component |
+| Multiple services | Generate component diagram for each major service |
+
+---
+
 ## Implementation Status
 
 | Component | Status |
@@ -223,6 +444,6 @@ If approved, write to:
 | Argument parsing | Basic |
 | Secret scanning | Not started |
 | README generation | **Implemented** |
-| Diagram generation | Not started |
+| Diagram generation | **Implemented** |
 | Safe code pack | Not started |
 | Review gate | Basic |
