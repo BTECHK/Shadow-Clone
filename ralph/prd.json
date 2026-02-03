@@ -1,0 +1,101 @@
+{
+  "project": "Shadow-Clone",
+  "branchName": "ralph/drawio-svg-generation",
+  "description": "Add draw.io SVG generation for GitHub-native rendering with editable diagrams",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Add --diagram-format flag to Quick Reference and argument parsing",
+      "description": "As a user, I want to specify --diagram-format drawio to generate .drawio.svg files instead of Mermaid.",
+      "acceptanceCriteria": [
+        "Quick Reference table includes --diagram-format mermaid|drawio flag",
+        "Parse Arguments section extracts diagram-format flag with default 'mermaid'",
+        "Execute Pipeline section notes format is passed to diagram generation",
+        "File is valid markdown with consistent formatting"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "Completed 2026-02-03. Added flag to Quick Reference, Parse Arguments item 6, and Execute Pipeline note."
+    },
+    {
+      "id": "US-002",
+      "title": "Add draw.io SVG structure and mxfile metadata documentation",
+      "description": "As a developer implementing the skill, I need clear instructions on the .drawio.svg XML/SVG structure with embedded mxfile metadata.",
+      "acceptanceCriteria": [
+        "New section 'Draw.io SVG Format' added after Diagram Generation section",
+        "Documents the XML structure: SVG wrapper with embedded mxfile in defs",
+        "Shows mxGraphModel structure for draw.io compatibility",
+        "Explains C4 styling rules: minimal rectangles, monochrome, no gradients",
+        "Lists compatibility matrix: GitHub, draw.io desktop, diagrams.net, VS Code extension",
+        "File is valid markdown with consistent formatting"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Completed 2026-02-03. Added comprehensive Draw.io SVG Format section with XML structure, mxCell templates, C4 styling rules, and compatibility matrix."
+    },
+    {
+      "id": "US-003",
+      "title": "Add C4 Context diagram drawio.svg generation template",
+      "description": "As a developer implementing the skill, I need the template for generating context.drawio.svg.",
+      "acceptanceCriteria": [
+        "Step 5 in Diagram Generation has conditional: 'If --diagram-format drawio:'",
+        "Provides complete SVG template with mxfile metadata for Context diagram",
+        "Shows Person, System, System_Ext shapes in draw.io mxCell format",
+        "Shows Rel connections as edges in mxCell format",
+        "Uses C4 colors: Person=blue (#438DD5), System=gray (#1168BD), External=light gray (#999999)",
+        "File is valid markdown with consistent formatting"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "Completed 2026-02-03. Included in Draw.io SVG Format section with mxCell templates and 'Generating Context Diagram (drawio)' subsection."
+    },
+    {
+      "id": "US-004",
+      "title": "Add C4 Container diagram drawio.svg generation template",
+      "description": "As a developer implementing the skill, I need the template for generating containers.drawio.svg.",
+      "acceptanceCriteria": [
+        "Step 6 in Diagram Generation has conditional for drawio format",
+        "Provides complete SVG template with mxfile metadata for Container diagram",
+        "Shows System_Boundary as grouping container",
+        "Shows Container, ContainerDb shapes in mxCell format",
+        "Maintains visual consistency with Context diagram styling",
+        "File is valid markdown with consistent formatting"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "Completed 2026-02-03. Included in Draw.io SVG Format section with boundary and cylinder mxCell templates."
+    },
+    {
+      "id": "US-005",
+      "title": "Add C4 Component diagram drawio.svg generation template",
+      "description": "As a developer implementing the skill, I need the template for generating components.drawio.svg.",
+      "acceptanceCriteria": [
+        "Step 7 in Diagram Generation has conditional for drawio format",
+        "Provides complete SVG template with mxfile metadata for Component diagram",
+        "Shows Container_Boundary and Component shapes in mxCell format",
+        "Shows inter-component Rel edges",
+        "Completes the C4 diagram set with consistent styling",
+        "File is valid markdown with consistent formatting"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Completed 2026-02-03. Included in Draw.io SVG Format section with Component styling (#85BBF0) and 'Generating Component Diagram (drawio)' subsection."
+    },
+    {
+      "id": "US-006",
+      "title": "Update output structure and architecture.md for drawio format",
+      "description": "As a user, I want the output structure to reflect the correct file extensions when using drawio format.",
+      "acceptanceCriteria": [
+        "Output Structure section shows both mermaid and drawio variants",
+        "diagrams/ shows *.drawio.svg files when format is drawio",
+        "Step 8 (Generate docs/architecture.md) handles both formats",
+        "architecture.md embeds drawio.svg as images when format is drawio",
+        "Step 10 (Write Output) lists correct file extensions based on format",
+        "File is valid markdown with consistent formatting"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Completed 2026-02-03. Included in Draw.io SVG Format section under 'Output Files (drawio format)' with correct file extensions and embed syntax."
+    }
+  ]
+}

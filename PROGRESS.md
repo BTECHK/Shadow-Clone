@@ -1,10 +1,10 @@
 # Shadow-Clone Progress
 
-Last Updated: 2026-02-01
+Last Updated: 2026-02-03
 
-## Current Status: Skill Tested & Working
+## Current Status: Feature Complete
 
-The shadow-clone skill has been tested end-to-end on a real project (liniage-link).
+The shadow-clone skill has been tested end-to-end and is ready for use.
 
 ## Completed Work
 
@@ -13,28 +13,28 @@ The shadow-clone skill has been tested end-to-end on a real project (liniage-lin
 | SKILL.md implementation | ✅ Done | Full 5-stage pipeline defined |
 | Execution instructions | ✅ Done | Stages 1-5 documented |
 | Secret scanning | ✅ Done | Pattern-based detection |
-| README generation | ✅ Tested | Works on liniage-link |
+| README generation | ✅ Tested | Portfolio README generation |
 | C4 diagram generation | ✅ Tested | Context, Container, Component |
 | ADR generation | ✅ Tested | Extracts from git commits |
 | Safe code pack | ✅ Tested | Allow/deny filtering works |
 | Installation instructions | ✅ Done | Added to README.md |
+| Draw.io SVG format | ✅ Done | GitHub-native editable diagrams |
 
-## Test Results (liniage-link)
+## Test Results
 
 All modes tested successfully:
 - `--readme-only` → Generated portfolio README
 - `--diagrams-only` → Generated 3 Mermaid C4 diagrams + architecture.md
-- `--safe-code-only` → Extracted 16 safe files, excluded 45+ sensitive files
+- `--diagrams-only --diagram-format drawio` → Generated 3 .drawio.svg files
+- `--safe-code-only` → Extracted safe files, excluded sensitive files
 - Full pipeline → All outputs generated
-
-Output location: `liniage-link/shadow-clone-output/`
 
 ## Known Issues
 
 1. **Skill not auto-registered** - Users must manually install to `~/.claude/skills/`
 2. **node_modules glob noise** - Glob finds node_modules unless path is scoped
 
-## Next Steps (Pick One)
+## Future Enhancements
 
 ### Option A: Role-Specific README Sections
 Add sections for different audiences:
@@ -48,23 +48,19 @@ Create recruiter-optimized one-pager (37-second scan finding).
 ### Option C: Business Logic IP Detection
 Extend Stage 2 to detect proprietary code patterns.
 
-### Option D: Close SKILL.md ↔ DESIGN.md Gaps
-Mode combining, config schema docs, publish destinations.
-
-### Option E: MCP Server Wrapper
+### Option D: MCP Server Wrapper
 Create MCP server so skill auto-registers with Claude Code.
 
-## Files Changed This Session
-
-### Shadow-Clone repo
-- `README.md` - Added installation instructions, quick start, flags
-
-### liniage-link repo (test outputs)
-- `shadow-clone-output/` - Full generated portfolio (not committed)
-
-## To Resume
+## To Resume Development
 
 ```bash
-cd C:\Users\k_a_s\OneDrive\Desktop\github\Shadow-Clone
-# Review this file, pick a next step from Options A-E
+# Clone the repo
+git clone https://github.com/yourusername/Shadow-Clone.git
+cd Shadow-Clone
+
+# Install the skill
+cp skill/SKILL.md ~/.claude/skills/shadow-clone.md
+
+# Test on a project
+/shadow-clone /path/to/your-project --readme-only
 ```

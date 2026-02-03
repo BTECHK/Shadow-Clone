@@ -21,6 +21,7 @@ Create quick portfolios and code summaries for easier digest.
 | `--file PATH` | Target specific file |
 | `--folder PATH` | Target specific folder |
 | `--include GLOB` | Include by glob pattern |
+| `--diagram-format FORMAT` | `mermaid` (default) or `drawio` for .drawio.svg files |
 
 ## Invocation
 
@@ -52,6 +53,7 @@ Extract from invocation:
 3. **Rules** - `--rules "natural language rules"`
 4. **Output** - `--output DIR` (default: `./shadow-clone-output/`)
 5. **Safety** - `--mode conservative` (default) or `--mode moderate`
+6. **Diagram format** - `--diagram-format mermaid` (default) or `--diagram-format drawio`
 
 **Validation:**
 1. Use `Bash: ls {target_path}` to verify path exists
@@ -68,6 +70,8 @@ Based on mode flag, execute stages:
 | `--diagrams-only` | 1 → 2 → 4b → 5 |
 | `--safe-code-only` | 1 → 2 → 3 → 4c → 5 |
 | Full (default) | 1 → 2 → 3 → 4 → 5 |
+
+**Note:** When `--diagrams-only` or full mode runs Stage 4b, pass the `--diagram-format` value to determine output format (`.mermaid` or `.drawio.svg`).
 
 ## Workflow
 
@@ -235,6 +239,7 @@ SAFE CODE PACK:
 
 ## Output Structure
 
+**Default (Mermaid format):**
 ```
 shadow-clone-output/
 ├── README.md                    # Main project narrative
@@ -254,6 +259,17 @@ shadow-clone-output/
     ├── infrastructure/
     ├── utils/
     └── stubs/                   # Stubbed excluded code (if enabled)
+```
+
+**With `--diagram-format drawio`:**
+```
+shadow-clone-output/
+├── ...                          # Same as above
+├── diagrams/                    # Draw.io SVG files (GitHub-native, editable)
+│   ├── context.drawio.svg
+│   ├── containers.drawio.svg
+│   └── components.drawio.svg
+└── ...
 ```
 
 ## Safety Principles
@@ -593,6 +609,156 @@ If approved, write to:
 | Unknown technology | Use generic labels, note uncertainty in review |
 | No components detected | Generate context + container only, skip component |
 | Multiple services | Generate component diagram for each major service |
+
+---
+
+## Draw.io SVG Format (`--diagram-format drawio`)
+
+When `--diagram-format drawio` is specified, generate `.drawio.svg` files instead of Mermaid. These files render natively on GitHub as images while remaining fully editable in draw.io.
+
+### How .drawio.svg Works
+
+A `.drawio.svg` file is a valid SVG image with embedded draw.io metadata:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1" width="{width}px" height="{height}px" viewBox="0 0 {width} {height}">
+  <defs>
+    <!-- draw.io metadata embedded here -->
+    <mxfile host="shadow-clone" modified="{timestamp}" agent="shadow-clone" version="1.0">
+      <diagram id="{diagram-id}" name="{Diagram Name}">
+        <mxGraphModel dx="0" dy="0" grid="1" gridSize="10" guides="1" tooltips="1"
+                      connect="1" arrows="1" fold="1" page="1" pageScale="1">
+          <root>
+            <mxCell id="0"/>
+            <mxCell id="1" parent="0"/>
+            <!-- Diagram elements as mxCell nodes -->
+          </root>
+        </mxGraphModel>
+      </diagram>
+    </mxfile>
+  </defs>
+  <!-- SVG visual content -->
+  <g>
+    <!-- Rectangles, text, arrows rendered as SVG -->
+  </g>
+</svg>
+```
+
+### C4 Styling Rules
+
+Apply consistent C4 styling for professional appearance:
+
+| Element | Style |
+|---------|-------|
+| Person | Rounded rectangle, fill `#438DD5`, white text |
+| System | Rectangle, fill `#1168BD`, white text |
+| External System | Rectangle, fill `#999999`, white text |
+| Container | Rectangle, fill `#438DD5`, white text |
+| Container (DB) | Cylinder shape, fill `#438DD5`, white text |
+| Component | Rectangle, fill `#85BBF0`, black text |
+| System Boundary | Dashed rectangle, no fill, `#888888` stroke |
+| Relationships | Solid arrow, `#707070`, label in gray |
+
+**Design principles:**
+- Minimal aesthetic - simple shapes, no gradients or shadows
+- Monochrome-friendly - works in light and dark themes
+- Clear typography - consistent font sizing
+- Adequate spacing - 20px minimum between elements
+
+### mxCell Format Reference
+
+**Rectangle (System/Container/Component):**
+```xml
+<mxCell id="{id}" value="{label}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1168BD;fontColor=#ffffff;strokeColor=#0B4884;"
+        vertex="1" parent="1">
+  <mxGeometry x="{x}" y="{y}" width="120" height="60" as="geometry"/>
+</mxCell>
+```
+
+**Person:**
+```xml
+<mxCell id="{id}" value="{label}" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#438DD5;strokeColor=#3A7BBD;"
+        vertex="1" parent="1">
+  <mxGeometry x="{x}" y="{y}" width="30" height="60" as="geometry"/>
+</mxCell>
+```
+
+**Database (Cylinder):**
+```xml
+<mxCell id="{id}" value="{label}" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#438DD5;fontColor=#ffffff;strokeColor=#3A7BBD;"
+        vertex="1" parent="1">
+  <mxGeometry x="{x}" y="{y}" width="60" height="80" as="geometry"/>
+</mxCell>
+```
+
+**Boundary (Dashed box):**
+```xml
+<mxCell id="{id}" value="{label}" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;strokeColor=#888888;verticalAlign=top;fontStyle=1;"
+        vertex="1" parent="1">
+  <mxGeometry x="{x}" y="{y}" width="400" height="300" as="geometry"/>
+</mxCell>
+```
+
+**Relationship (Arrow):**
+```xml
+<mxCell id="{id}" value="{label}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#707070;fontColor=#707070;"
+        edge="1" parent="1" source="{source-id}" target="{target-id}">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+```
+
+### Generating Context Diagram (drawio)
+
+When `--diagram-format drawio`, Step 5 produces `context.drawio.svg`:
+
+1. Create SVG with mxfile metadata in `<defs>`
+2. Add Person mxCell for user at top center
+3. Add System mxCell for main system in center
+4. Add System_Ext mxCells for each external system (DB, cache, etc.)
+5. Add edge mxCells for each relationship
+6. Render corresponding SVG shapes in `<g>` element
+7. Calculate viewBox from element positions
+
+### Generating Container Diagram (drawio)
+
+When `--diagram-format drawio`, Step 6 produces `containers.drawio.svg`:
+
+1. Create boundary mxCell encompassing all internal containers
+2. Add Container mxCells inside boundary
+3. Add ContainerDb (cylinder) mxCells for databases
+4. Add external Person and System_Ext outside boundary
+5. Add relationship edges between elements
+
+### Generating Component Diagram (drawio)
+
+When `--diagram-format drawio`, Step 7 produces `components.drawio.svg`:
+
+1. Create Container_Boundary mxCell for the container being detailed
+2. Add Component mxCells for each detected component
+3. Use lighter fill (`#85BBF0`) to distinguish from containers
+4. Add inter-component relationship edges
+
+### Compatibility Matrix
+
+| Tool | Support |
+|------|---------|
+| GitHub rendering | ✅ Displays as image in markdown |
+| draw.io desktop | ✅ Full editing capability |
+| diagrams.net (web) | ✅ Full editing capability |
+| VS Code Draw.io Extension | ✅ Full editing capability |
+| Browser (direct) | ✅ Displays as SVG image |
+| Figma/Sketch import | ✅ Imports as vector graphic |
+
+### Output Files (drawio format)
+
+When `--diagram-format drawio`, Step 10 writes:
+- `{output_dir}/diagrams/context.drawio.svg`
+- `{output_dir}/diagrams/containers.drawio.svg`
+- `{output_dir}/diagrams/components.drawio.svg`
+- `{output_dir}/docs/architecture.md` (with `![](../diagrams/*.drawio.svg)` embeds)
 
 ---
 

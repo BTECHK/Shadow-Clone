@@ -2,7 +2,7 @@
 
 > Turn your code into a portfolio. Fast.
 
-![Status: WIP](https://img.shields.io/badge/status-WIP-yellow)
+![Status: Ready](https://img.shields.io/badge/status-ready-green)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
 ## What is this?
@@ -15,6 +15,7 @@ becoming git experts.
 
 - **README Generation** - AI writes your project story with tech stack, trade-offs, and features
 - **Architecture Diagrams** - Auto-generated C4 diagrams (Context, Container, Component)
+- **Draw.io Support** - GitHub-native SVG diagrams that are also editable in draw.io
 - **Safe Code Pack** - Filtered, sanitized code extraction with secret redaction
 - **Decision Logs** - Architecture Decision Records (ADRs) extracted from commits
 - **Secret Scanning** - Detects API keys, credentials, tokens before publishing
@@ -27,7 +28,15 @@ becoming git experts.
 
 ## Installation
 
-### Option 1: Copy to Claude Code Skills Directory
+### Option 1: Plugin Marketplace (Recommended)
+
+Add the skill directly from the marketplace:
+
+```bash
+/plugin marketplace add itsatony/Shadow-Clone
+```
+
+### Option 2: Copy to Claude Code Skills Directory
 
 ```bash
 # Create skills directory if it doesn't exist
@@ -60,8 +69,11 @@ After installation, use in any project:
 # Generate portfolio README
 /shadow-clone /path/to/your-project --readme-only
 
-# Generate architecture diagrams
+# Generate architecture diagrams (Mermaid)
 /shadow-clone /path/to/your-project --diagrams-only
+
+# Generate editable draw.io diagrams (GitHub-native SVG)
+/shadow-clone /path/to/your-project --diagrams-only --diagram-format drawio
 
 # Extract safe code samples
 /shadow-clone /path/to/your-project --safe-code-only
@@ -89,6 +101,8 @@ shadow-clone-output/
     └── ...
 ```
 
+With `--diagram-format drawio`, diagrams are `.drawio.svg` files that render on GitHub and are editable in draw.io.
+
 ## Flags
 
 | Flag | Purpose |
@@ -99,6 +113,7 @@ shadow-clone-output/
 | `--output DIR` | Output directory (default: `./shadow-clone-output/`) |
 | `--mode conservative` | Maximum safety (default) |
 | `--mode moderate` | Redact instead of exclude |
+| `--diagram-format FORMAT` | `mermaid` (default) or `drawio` for editable SVG |
 | `--rules "..."` | Natural language filtering rules |
 
 ## Safety Features

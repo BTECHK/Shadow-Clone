@@ -1,0 +1,17 @@
+{
+  "name": "shadow-clone-marketplace",
+  "description": "Portfolio generation skill for Claude Code - turn your code into a portfolio fast",
+  "owner": {
+    "name": "Kyle Atekwana",
+    "url": "https://github.com/itsatony"
+  },
+  "plugins": [
+    {
+      "name": "shadow-clone",
+      "source": "./skill",
+      "description": "Generate portfolio-ready artifacts from your projects - README, C4 diagrams, safe code pack, and ADRs",
+      "version": "1.0.0",
+      "tags": ["portfolio", "documentation", "diagrams", "c4", "readme", "security"]
+    }
+  ]
+}
