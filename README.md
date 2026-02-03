@@ -129,7 +129,7 @@ See [docs/DESIGN.md](docs/DESIGN.md) for the full technical specification.
 
 ## Author
 
-**Kyle Atekwana**
+**BTECHK**
 
 ## License
 
