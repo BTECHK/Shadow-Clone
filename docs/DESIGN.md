@@ -195,7 +195,7 @@ outputs:
 
 - **README**: Project narrative, tech stack, your role, sanitized problem/solution
 - **Diagrams**: Mermaid C4 diagrams from dependency analysis
-- **Safe code pack**: Copy allowed files, insert stubs for denied ones
+- **Safe code extraction**: Copy allowed files, insert stubs for denied ones
 - **Per-file/folder artifacts**: Summaries, snippets, mini-diagrams (if targeted mode)
 
 ### Stage 5: Review Gate
@@ -226,7 +226,7 @@ shadow-clone-output/
 │   ├── containers.drawio.svg    # Services, DBs, queues
 │   └── components.drawio.svg    # Internal module structure
 │
-├── code/                        # Safe code pack
+├── code/                        # Safe code extraction
 │   ├── infrastructure/
 │   │   ├── terraform/
 │   │   └── docker/
@@ -585,7 +585,7 @@ Subsequent runs:
   → Preserves manually-edited diagrams (unless --force-diagrams)
 ```
 
-### Safe Code Pack
+### Safe Code Extraction
 
 **Included by Default (Conservative Mode):**
 
@@ -667,7 +667,7 @@ MODES (what to generate):
   --full                           Full pipeline (default)
   --readme-only                    Just README
   --diagrams-only                  Just architecture diagrams
-  --safe-code-only                 Just safe code pack
+  --safe-code-only                 Safe code extraction only
   --readme --diagrams              Combine specific modes
 
 TARGETING (granular):
@@ -742,7 +742,7 @@ INCREMENTAL/DELTA:
 
 This design is based on market research documented in:
 - `shadow-clone-research-claude.md` - Comprehensive market research, MVP prioritization
-- `shadow-clone-research-chatgpt.md` - Updated MVP scope, safe code pack approach
+- `shadow-clone-research-chatgpt.md` - Updated MVP scope, safe code extraction approach
 - `shadow-clone-research-gemini.md` - Technical architecture, competitive analysis
 
 Key insights incorporated:

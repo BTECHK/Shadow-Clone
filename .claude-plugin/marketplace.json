@@ -9,7 +9,7 @@
     {
       "name": "shadow-clone",
       "source": "./skill",
-      "description": "Generate portfolio-ready artifacts from your projects - README, C4 diagrams, safe code pack, and ADRs",
+      "description": "Generate portfolio-ready artifacts from your projects - README, C4 diagrams, safe code extraction, and ADRs",
       "version": "1.0.0",
       "tags": ["portfolio", "documentation", "diagrams", "c4", "readme", "security"]
     }

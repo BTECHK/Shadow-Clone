@@ -16,7 +16,7 @@ The shadow-clone skill has been tested end-to-end and is ready for use.
 | README generation | ✅ Tested | Portfolio README generation |
 | C4 diagram generation | ✅ Tested | Context, Container, Component |
 | ADR generation | ✅ Tested | Extracts from git commits |
-| Safe code pack | ✅ Tested | Allow/deny filtering works |
+| Safe code extraction | ✅ Tested | Allow/deny filtering works |
 | Installation instructions | ✅ Done | Added to README.md |
 | Draw.io SVG format | ✅ Done | GitHub-native editable diagrams |
 

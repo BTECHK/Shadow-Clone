@@ -13,7 +13,7 @@ Create quick portfolios and code summaries for easier digest.
 |------|---------|
 | `--readme-only` | Generate README only |
 | `--diagrams-only` | Generate architecture diagrams only |
-| `--safe-code-only` | Extract safe code pack only |
+| `--safe-code-only` | Safe code extraction only |
 | `--config FILE` | Use config file |
 | `--rules "..."` | Natural language rules |
 | `--output DIR` | Output directory (default: `./shadow-clone-output/`) |
@@ -191,7 +191,7 @@ Track findings mentally for Stage 3:
 Based on mode flags, generate:
 - **README** - Project overview, tech stack, architecture summary
 - **Diagrams** - Mermaid C4 diagrams (Context, Container, Component levels)
-- **Safe Code Pack** - Allowlisted files with sanitization applied
+- **Safe Code Extraction** - Allowlisted files with sanitization applied
 - **Decision Logs** - Architecture Decision Records (ADRs) extracted from commits/code
 
 ### Stage 5: Review Gate
@@ -224,7 +224,7 @@ SECRETS FOUND:
   LOW: {n} (will be redacted)
 
 {If --safe-code-only or full mode:}
-SAFE CODE PACK:
+SAFE CODE EXTRACTION:
   Include: {n} files
   Exclude: {n} files
   Redact: {n} files
@@ -255,7 +255,7 @@ shadow-clone-output/
 │   ├── context.mermaid
 │   ├── containers.mermaid
 │   └── components.mermaid
-└── code/                        # Safe code pack
+└── code/                        # Safe code extraction
     ├── infrastructure/
     ├── utils/
     └── stubs/                   # Stubbed excluded code (if enabled)
@@ -363,7 +363,7 @@ See [docs/decisions/](docs/decisions/) for Architecture Decision Records.
 
 ## Code Highlights
 
-{If safe code pack exists:}
+{If safe code extraction exists:}
 See [/code](/code) for sanitized examples of:
 - Infrastructure patterns
 - API design
@@ -896,7 +896,7 @@ Write sensitivity map to:
 
 ---
 
-## Safe Code Pack (`--safe-code-only`)
+## Safe Code Extraction (`--safe-code-only`)
 
 Extract safe, shareable code by filtering through allow/deny rules and sanitizing detected secrets.
 
@@ -998,7 +998,7 @@ shadow-clone-output/
 
 Generate `MANIFEST.md`:
 ```markdown
-# Safe Code Pack Manifest
+# Safe Code Extraction Manifest
 
 Generated: {timestamp}
 Source: {repo_path}
@@ -1033,7 +1033,7 @@ Source: {repo_path}
 Display before writing:
 
 ```
-SAFE CODE PACK PREVIEW
+SAFE CODE EXTRACTION PREVIEW
 ══════════════════════
 
 Files to include: 15 files (3 with redactions)
@@ -1055,7 +1055,7 @@ Excluded (45 files):
   - src/config/db.ts (1 file) - CRITICAL secrets
 ```
 
-Ask: **"Generate safe code pack with these settings? (yes/no)"**
+Ask: **"Generate safe code extraction with these settings? (yes/no)"**
 
 ### Step 7: Write Output
 
@@ -1066,7 +1066,7 @@ If approved:
 
 ```json
 {
-  "safe_code_pack": {
+  "safe_code_extraction": {
     "generated_at": "ISO-8601",
     "files_included": 15,
     "files_excluded": 45,

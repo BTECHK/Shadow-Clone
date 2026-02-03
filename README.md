@@ -16,7 +16,7 @@ becoming git experts.
 - **README Generation** - AI writes your project story with tech stack, trade-offs, and features
 - **Architecture Diagrams** - Auto-generated C4 diagrams (Context, Container, Component)
 - **Draw.io Support** - GitHub-native SVG diagrams that are also editable in draw.io
-- **Safe Code Pack** - Filtered, sanitized code extraction with secret redaction
+- **Safe Code Extraction** - Filtered, sanitized code extraction with secret redaction
 - **Decision Logs** - Architecture Decision Records (ADRs) extracted from commits
 - **Secret Scanning** - Detects API keys, credentials, tokens before publishing
 
@@ -97,7 +97,7 @@ shadow-clone-output/
 │   └── decisions/               # Architecture Decision Records
 │       ├── INDEX.md
 │       └── 001-*.md
-└── code/                        # Safe code pack (sanitized)
+└── code/                        # Safe code extraction (sanitized)
     └── ...
 ```
 
@@ -109,7 +109,7 @@ With `--diagram-format drawio`, diagrams are `.drawio.svg` files that render on 
 |------|---------|
 | `--readme-only` | Generate README only |
 | `--diagrams-only` | Generate architecture diagrams only |
-| `--safe-code-only` | Extract safe code pack only |
+| `--safe-code-only` | Extract safe code extraction only |
 | `--output DIR` | Output directory (default: `./shadow-clone-output/`) |
 | `--mode conservative` | Maximum safety (default) |
 | `--mode moderate` | Redact instead of exclude |
